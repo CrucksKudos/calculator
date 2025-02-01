@@ -1,0 +1,21 @@
+button {
+    height: 50px;
+    width: 50px;
+}
+
+#equal {
+    width: 212px;
+}
+
+.display {
+    height: 80px;
+    width: 212px;
+    background-color: lightgrey;
+    color: black;
+    font-size: 30px;
+    text-align: end;
+    font-weight: 800;
+    border: 2px solid black;
+    padding: 20px;
+    box-sizing: border-box;
+}
