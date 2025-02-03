@@ -17,7 +17,6 @@ function divide(a, b) {
 }
 
 function operate(a, b, operator) {
-    
     let result = 0;
 
     switch(operator) {
@@ -47,20 +46,61 @@ function displayDigit(a) {
 
 function clearDisplay() {
     display.textContent = "";
+    number = 0;
+    firstNumber = 0;
+    secondNumber = 0;
 }
 
 const numberButtons = Array.from(document.querySelectorAll(".number"));
+const operatorButtons = Array.from(document.querySelectorAll(".operator"));
 const clearButton = document.querySelector("#clear")
+const equalButton = document.querySelector("#equal")
+
 let number = 0;
+let firstNumber = 0
+let secondNumber = 0
+let operatorClicked = false
+let operator
+
 
 numberButtons.forEach((button) => {
     button.addEventListener("click", function() {
         let n = button.innerText
+        if(operatorClicked == true) {
+            display.textContent = "";
+            operatorClicked = false
+        }
         displayDigit(n);
-        number += Number(n);
-        console.log(number);
+        number = number * 10 + Number(n)
+    })
+})
+
+operatorButtons.forEach((button) => {
+    button.addEventListener("click", function() {
+        operatorClicked = true
+        digits = 0;
+        operator = button.id;
+        if (firstNumber == 0) {
+            firstNumber = number;
+            number = 0;
+        }
+       
     })
 })
 
 clearButton.addEventListener("click", clearDisplay)
+
+
+equalButton.addEventListener("click", function() {
+    secondNumber = number
+    const result = operate (firstNumber, secondNumber, operator)
+    console.log(firstNumber)
+    console.log(secondNumber)
+    console.log(operator)
+    display.textContent = "";
+    displayDigit(result)
+})
+
+
+
 
