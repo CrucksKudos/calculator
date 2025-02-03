@@ -1,3 +1,5 @@
+const display = document.querySelector(".display");
+
 function add(a, b) {
     return a + b;
 }
@@ -39,8 +41,26 @@ function operate(a, b, operator) {
     return result;
 }
 
-let a = 10
-let b = 15
-let operator = "add"
+function displayDigit(a) {
+    display.textContent += a;
+}
 
-console.log(operate(a,b,operator))
+function clearDisplay() {
+    display.textContent = "";
+}
+
+const numberButtons = Array.from(document.querySelectorAll(".number"));
+const clearButton = document.querySelector("#clear")
+let number = 0;
+
+numberButtons.forEach((button) => {
+    button.addEventListener("click", function() {
+        let n = button.innerText
+        displayDigit(n);
+        number += Number(n);
+        console.log(number);
+    })
+})
+
+clearButton.addEventListener("click", clearDisplay)
+
