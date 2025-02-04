@@ -16,6 +16,12 @@ let digit = 1;
 let lastClick;
 let operator
 
+function blink (item) {
+    item.classList.add("blink");
+    setTimeout(() => {
+        item.classList.remove("blink"); 
+    }, 100);
+}
 
 function add(a, b) {
     return a + b;
@@ -96,7 +102,8 @@ function resetValues() {
     operator = ""
 }
 
-function clearAll() {
+function clearAll(event) {
+    blink(event.target);
     display.textContent = "";
     resetValues()
 }
@@ -107,6 +114,7 @@ function buttonClick(event) {
 
     if (event.type === "click") {
         n = event.target.innerText; 
+        blink(event.target);
     } else if (event.type === "keydown") {
         n = event.key;
     }
@@ -130,10 +138,12 @@ function operatorClick(event) {
     decimal = false;
     digit = 1;
     lastClick = "operator";
+
     
     if (firstNumber == null) {
         if (event.type === "click") {
             operator = event.target.id; 
+            blink(event.target)
         } else if (event.type === "keydown") {
             switch(event.key) {
                 case "+":
@@ -160,6 +170,7 @@ function operatorClick(event) {
         number = null;
         if (event.type === "click") {
             operator = event.target.id; 
+            blink(event.target)
         } else if (event.type === "keydown") {
             switch(event.key) {
                 case "+":
@@ -179,8 +190,10 @@ function operatorClick(event) {
     console.log(operator)
 }
 
-function equalClick() {
+function equalClick(event) {
     lastClick = "equal";
+    if (event.type === "click") {
+        blink(event.target)}
 
     if (firstNumber != null && number == null) {
         displayNumber(firstNumber)
@@ -193,8 +206,12 @@ function equalClick() {
     }
 }
 
-function pointClick() {
+function pointClick(event) {
     lastClick = "point";
+
+    if (event.type === "click") {
+        blink(event.target)}
+
     if (decimal == false) {
         
         if(number == null) {
@@ -210,8 +227,10 @@ function pointClick() {
     }
 }
 
-function backspaceClick() {
-    
+function backspaceClick(event) {
+    if (event.type === "click") {
+        blink(event.target)}
+
     if(lastClick == "equal" || lastClick == "operator") {
         clearAll ()
     }
@@ -250,7 +269,9 @@ function backspaceClick() {
     }
 }
 
-function positiveNegativeClick () {
+function positiveNegativeClick (event) {
+    if (event.type === "click") {
+        blink(event.target)}
     number *= -1;
     displayNumber(number)
 }
@@ -259,7 +280,7 @@ numberButtons.forEach((button) => {button.addEventListener("click", buttonClick)
 
 operatorButtons.forEach((button) => {button.addEventListener("click", operatorClick);});
 
-equalButton.addEventListener("click",equalClick)
+equalButton.addEventListener("click", equalClick)
 
 clearButton.addEventListener("click", clearAll)
 
@@ -280,19 +301,19 @@ window.addEventListener("keydown", (event) => {
     }
     else if (event.key == "=" || event.key == "Enter")
     {
-        equalClick()
+        equalClick(event)
     }
     else if (event.key == "Delete")
     {
-        clearAll()
+        clearAll(event)
     }
     else if (event.key == "Backspace")
     {
-        backspaceClick()
+        backspaceClick(event)
     }
     else if (event.key == ".")
     {
-        pointClick()
+        pointClick(event)
     }
 })
 
