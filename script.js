@@ -1,4 +1,19 @@
 const display = document.querySelector(".display");
+const numberButtons = Array.from(document.querySelectorAll(".number"));
+const operatorButtons = Array.from(document.querySelectorAll(".operator"));
+const clearButton = document.querySelector("#clear")
+const equalButton = document.querySelector("#equal")
+const pointButton = document.querySelector("#point")
+const backspaceButton = document.querySelector("#backspace")
+
+let number = null;
+let firstNumber = null
+let secondNumber = null
+let result = null;
+let decimal = false;
+let digit = 1;
+let operator
+
 
 function add(a, b) {
     return a + b;
@@ -18,6 +33,10 @@ function divide(a, b) {
 
 function operate(a, b, operator) {
     let result = 0;
+
+    if(operator == "divide" && b == 0) {
+        return "LOL"
+    }
 
     switch(operator) {
         
@@ -40,67 +59,156 @@ function operate(a, b, operator) {
     return result;
 }
 
-function displayDigit(a) {
-    display.textContent += a;
+function displayNumber(a, clearDisplay = true) {
+
+    let newText = display.innerText;
+    
+    if (clearDisplay == true) {
+        newText = a.toString();
+    }
+    
+    else 
+    {
+        newText += a.toString();
+    }
+
+    const maxDigits = 10;
+    if (newText.length > maxDigits) {
+        newText = newText.slice(0, maxDigits); // Mantém apenas os primeiros 10 caracteres
+    }
+
+    display.textContent = newText;
 }
 
-function clearDisplay() {
+function resetValues() {
+    number = null;
+    firstNumber = null;
+    secondNumber = null;
+    result = null;
+    digit = 1;
+    decimal = false;
+    operator = ""
+}
+
+function clearAll() {
     display.textContent = "";
-    number = 0;
-    firstNumber = 0;
-    secondNumber = 0;
+    resetValues()
 }
-
-const numberButtons = Array.from(document.querySelectorAll(".number"));
-const operatorButtons = Array.from(document.querySelectorAll(".operator"));
-const clearButton = document.querySelector("#clear")
-const equalButton = document.querySelector("#equal")
-
-let number = 0;
-let firstNumber = 0
-let secondNumber = 0
-let operatorClicked = false
-let operator
-
 
 numberButtons.forEach((button) => {
     button.addEventListener("click", function() {
         let n = button.innerText
-        if(operatorClicked == true) {
-            display.textContent = "";
-            operatorClicked = false
+        
+        if (number == null && decimal == false) {
+            display.textContent = ""
         }
-        displayDigit(n);
-        number = number * 10 + Number(n)
+
+        if (!decimal) {
+            number = number * 10 + Number(n)
+        }
+        else {
+            number = Math.round((number + Number(n) / (10 ** digit)) * 1e10) / 1e10;
+            digit ++;
+        }
+        console.log(number)
+        displayNumber(n, false)
+        
     })
 })
 
 operatorButtons.forEach((button) => {
     button.addEventListener("click", function() {
-        operatorClicked = true
-        digits = 0;
-        operator = button.id;
-        if (firstNumber == 0) {
+
+        decimal = false;
+        digit = 1;
+
+        if (firstNumber == null) {
+            operator = button.id;
             firstNumber = number;
-            number = 0;
+            number = null;
+        }
+        else if (firstNumber != null) {
+            secondNumber = number;
+            result = operate (firstNumber, secondNumber, operator);
+            displayNumber(result);
+            firstNumber = result;
+            number = null;
+            operator = button.id;
         }
        
     })
 })
 
-clearButton.addEventListener("click", clearDisplay)
-
-
 equalButton.addEventListener("click", function() {
-    secondNumber = number
-    const result = operate (firstNumber, secondNumber, operator)
-    console.log(firstNumber)
-    console.log(secondNumber)
-    console.log(operator)
-    display.textContent = "";
-    displayDigit(result)
+    
+    if (firstNumber != null && number == null) {
+        displayNumber(firstNumber)
+    }
+
+    else if (firstNumber != null && number != null) {
+        secondNumber = number
+        result = operate (firstNumber, secondNumber, operator)
+        displayNumber(result)
+        check()
+    }
 })
 
+clearButton.addEventListener("click", clearAll)
+
+function check() {
+    console.log (`First: ${firstNumber}, Second: ${secondNumber}, Operator: ${operator},Result: ${result}`);
+}
+
+pointButton.addEventListener("click", function() {
+    
+    if (decimal == false) {
+        
+        if(number == null) {
+            displayNumber("0.");
+            decimal = true;
+        }
+
+        else {
+            displayNumber(".", false);
+            decimal = true;
+        }
+
+    }
+})
+
+backspaceButton.addEventListener("click", function() {
+    
+    if (number != null) {
+        if (decimal == false) {
+            number = (number - (number % 10))/10
+        }
+        else {
+            if (digit > 1) {                
+                number = ((number * 10 ** (digit - 1)) - ((number * 10 ** (digit - 1)) % 10)) / 10 ** (digit - 1)
+                digit --;
+                if (digit == 1)
+                {
+                    decimal = false;
+                }
+            }
+            else {
+                decimal = false;
+            }
+        }
+    
+        if (number == 0) {
+            number = null
+            displayNumber("")
+        }
+        else {
+        displayNumber(number)}
+    }
+
+    else {
+        decimal = false
+        displayNumber("")
+    }
+})
 
 
 
