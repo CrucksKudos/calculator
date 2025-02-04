@@ -12,6 +12,7 @@ let secondNumber = null
 let result = null;
 let decimal = false;
 let digit = 1;
+let lastClick;
 let operator
 
 
@@ -62,6 +63,10 @@ function operate(a, b, operator) {
 function displayNumber(a, clearDisplay = true) {
 
     let newText = display.innerText;
+
+    if (newText == "0" && a != ".") {
+        clearDisplay = true
+    }
     
     if (clearDisplay == true) {
         newText = a.toString();
@@ -74,7 +79,7 @@ function displayNumber(a, clearDisplay = true) {
 
     const maxDigits = 10;
     if (newText.length > maxDigits) {
-        newText = newText.slice(0, maxDigits); // Mantém apenas os primeiros 10 caracteres
+        newText = newText.slice(0, maxDigits);
     }
 
     display.textContent = newText;
@@ -95,52 +100,87 @@ function clearAll() {
     resetValues()
 }
 
-numberButtons.forEach((button) => {
-    button.addEventListener("click", function() {
-        let n = button.innerText
-        
-        if (number == null && decimal == false) {
-            display.textContent = ""
-        }
-
-        if (!decimal) {
-            number = number * 10 + Number(n)
-        }
-        else {
-            number = Math.round((number + Number(n) / (10 ** digit)) * 1e10) / 1e10;
-            digit ++;
-        }
-        console.log(number)
-        displayNumber(n, false)
-        
-    })
-})
-
-operatorButtons.forEach((button) => {
-    button.addEventListener("click", function() {
-
-        decimal = false;
-        digit = 1;
-
-        if (firstNumber == null) {
-            operator = button.id;
-            firstNumber = number;
-            number = null;
-        }
-        else if (firstNumber != null) {
-            secondNumber = number;
-            result = operate (firstNumber, secondNumber, operator);
-            displayNumber(result);
-            firstNumber = result;
-            number = null;
-            operator = button.id;
-        }
-       
-    })
-})
-
-equalButton.addEventListener("click", function() {
+function buttonClick(event) {
     
+    let n;
+
+    if (event.type === "click") {
+        n = event.target.innerText; 
+    } else if (event.type === "keydown") {
+        n = event.key;
+    }
+
+    if (number == null && decimal == false) {
+        display.textContent = "";
+    }
+
+    if (!decimal) {
+        number = number * 10 + Number(n);
+    } else {
+        number = Math.round((number + Number(n) / (10 ** digit)) * 1e10) / 1e10;
+        digit++;
+    }
+    lastClick = "digit";
+    displayNumber(n, false);
+}
+
+function operatorClick(event) {
+
+    decimal = false;
+    digit = 1;
+    lastClick = "operator";
+    
+    if (firstNumber == null) {
+        if (event.type === "click") {
+            operator = event.target.id; 
+        } else if (event.type === "keydown") {
+            switch(event.key) {
+                case "+":
+                    operator = "add";
+                    break;
+                case "-":
+                    operator = "subtract";
+                    break;
+                case "*":
+                    operator = "multiply";
+                    break;
+                default:
+                    operator = "divide"
+            }
+        }
+        firstNumber = number;
+        number = null;
+    }
+    else if (firstNumber != null) {
+        secondNumber = number;
+        result = operate (firstNumber, secondNumber, operator);
+        displayNumber(result);
+        firstNumber = result;
+        number = null;
+        if (event.type === "click") {
+            operator = event.target.id; 
+        } else if (event.type === "keydown") {
+            switch(event.key) {
+                case "+":
+                    operator = "add";
+                    break;
+                case "-":
+                    operator = "subtract";
+                    break;
+                case "*":
+                    operator = "multiply";
+                    break;
+                default:
+                    operator = "divide"
+            }
+        }
+    }
+    console.log(operator)
+}
+
+function equalClick() {
+    lastClick = "equal";
+
     if (firstNumber != null && number == null) {
         displayNumber(firstNumber)
     }
@@ -149,18 +189,11 @@ equalButton.addEventListener("click", function() {
         secondNumber = number
         result = operate (firstNumber, secondNumber, operator)
         displayNumber(result)
-        check()
     }
-})
-
-clearButton.addEventListener("click", clearAll)
-
-function check() {
-    console.log (`First: ${firstNumber}, Second: ${secondNumber}, Operator: ${operator},Result: ${result}`);
 }
 
-pointButton.addEventListener("click", function() {
-    
+function pointClick() {
+    lastClick = "point";
     if (decimal == false) {
         
         if(number == null) {
@@ -174,41 +207,102 @@ pointButton.addEventListener("click", function() {
         }
 
     }
-})
+}
 
-backspaceButton.addEventListener("click", function() {
+function backspaceClick() {
     
-    if (number != null) {
-        if (decimal == false) {
-            number = (number - (number % 10))/10
-        }
-        else {
-            if (digit > 1) {                
-                number = ((number * 10 ** (digit - 1)) - ((number * 10 ** (digit - 1)) % 10)) / 10 ** (digit - 1)
-                digit --;
-                if (digit == 1)
-                {
+    if(lastClick == "equal" || lastClick == "operator") {
+        clearAll ()
+    }
+    
+    else {
+        if (number != null) {
+            if (decimal == false) {
+                number = (number - (number % 10))/10
+            }
+            else {
+                if (digit > 1) {                
+                    number = ((number * 10 ** (digit - 1)) - ((number * 10 ** (digit - 1)) % 10)) / 10 ** (digit - 1)
+                    digit --;
+                    if (digit == 1)
+                    {
+                        decimal = false;
+                    }
+                }
+                else {
                     decimal = false;
                 }
             }
-            else {
-                decimal = false;
+        
+            if (number == 0) {
+                number = null
+                displayNumber("")
             }
+            else {
+            displayNumber(number)}
         }
-    
-        if (number == 0) {
-            number = null
+
+        else {
+            decimal = false
             displayNumber("")
         }
-        else {
-        displayNumber(number)}
     }
+}
 
-    else {
-        decimal = false
-        displayNumber("")
+numberButtons.forEach((button) => {button.addEventListener("click", buttonClick);});
+
+operatorButtons.forEach((button) => {button.addEventListener("click", operatorClick);});
+
+equalButton.addEventListener("click",equalClick)
+
+clearButton.addEventListener("click", clearAll)
+
+pointButton.addEventListener("click", pointClick)
+    
+backspaceButton.addEventListener("click", backspaceClick)
+    
+window.addEventListener("keydown", (event) => {
+    if (event.key >= "0" && event.key <= "9") 
+    {
+        buttonClick(event)
+    }
+    else if (event.key == "+" || event.key == "-" || event.key == "*" || event.key == "/") 
+    {
+        operatorClick(event)
+    }
+    else if (event.key == "=" || event.key == "Enter")
+    {
+        equalClick()
+    }
+    else if (event.key == "Delete")
+    {
+        clearAll()
+    }
+    else if (event.key == "Backspace")
+    {
+        backspaceClick()
+    }
+    else if (event.key == ".")
+    {
+        pointClick()
     }
 })
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+function check() {
+    console.log (`First: ${firstNumber}, Second: ${secondNumber}, Operator: ${operator},Result: ${result}`);
+}
