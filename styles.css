@@ -3,9 +3,8 @@ button {
     width: 50px;
 }
 
-#equal,
-#backspace {
-    width: 106px;
+#zero{
+    width: 104px;
 }
 
 .display {

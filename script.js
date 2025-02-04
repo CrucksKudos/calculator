@@ -5,6 +5,7 @@ const clearButton = document.querySelector("#clear")
 const equalButton = document.querySelector("#equal")
 const pointButton = document.querySelector("#point")
 const backspaceButton = document.querySelector("#backspace")
+const positiveNegativeButton = document.querySelector("#posneg")
 
 let number = null;
 let firstNumber = null
@@ -249,6 +250,11 @@ function backspaceClick() {
     }
 }
 
+function positiveNegativeClick () {
+    number *= -1;
+    displayNumber(number)
+}
+
 numberButtons.forEach((button) => {button.addEventListener("click", buttonClick);});
 
 operatorButtons.forEach((button) => {button.addEventListener("click", operatorClick);});
@@ -260,6 +266,8 @@ clearButton.addEventListener("click", clearAll)
 pointButton.addEventListener("click", pointClick)
     
 backspaceButton.addEventListener("click", backspaceClick)
+
+positiveNegativeButton.addEventListener("click", positiveNegativeClick)
     
 window.addEventListener("keydown", (event) => {
     if (event.key >= "0" && event.key <= "9") 
