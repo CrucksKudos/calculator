@@ -110,8 +110,7 @@ function resetValues() {
 
 //----------- Button Functions ----------------------
 function clearAll(event) {
-    if (event.type === "click") {
-        blink(event.target)}
+    if (event.type === "click") { blink(event.target) }
     display.textContent = "";
     resetValues()
 }
@@ -141,15 +140,14 @@ function digitClick(event) {
 }
 
 function operatorClick(event) {
-    lastClick = "operator";
 
     // Reset the decimal flag and digit counter for a new number entry.
     decimal = false;
     digit = 1;
     
-    // If no first number has been stored yet, process the operator input
-    // and store the current input as the first operand.
-    if (firstNumber == null) {
+    // Check if the last input was an operator.
+    // If true, simply update the operator without altering operands.
+    if (lastClick == "operator") {
         if (event.type === "click") {
             operator = event.target.id; 
             blink(event.target)
@@ -168,112 +166,142 @@ function operatorClick(event) {
                     operator = "divide"
             }
         }
-        firstNumber = currentInput;
-        currentInput = null;
     }
-    // If a first number already exists, then the current input becomes the second operand.
-    // This logic allows the user to perform continuous calculations.
-    else if (firstNumber != null) {
-        secondNumber = currentInput;
-        result = operate (firstNumber, secondNumber, operator);
-        displayNumber(result);
-        firstNumber = result;
-        currentInput = null;
+    // Otherwise, process the operator input normally.
+    else {
+        // If no first number has been stored yet, process the operator input
+        // and store the current input as the first operand.
+        if (firstNumber == null) {
+            if (event.type === "click") {
+                operator = event.target.id; 
+                blink(event.target)
+            } else if (event.type === "keydown") {
+                switch(event.key) {
+                    case "+":
+                        operator = "add";
+                        break;
+                    case "-":
+                        operator = "subtract";
+                        break;
+                    case "*":
+                        operator = "multiply";
+                        break;
+                    default:
+                        operator = "divide"
+                }
+            }
+            firstNumber = currentInput;
+            currentInput = null;
+        }
+        // If a first number already exists, then the current input becomes the second operand.
+        // This logic allows the user to perform continuous calculations.
+        else if (firstNumber != null) {
+            secondNumber = currentInput;
+            result = operate (firstNumber, secondNumber, operator);
+            displayNumber(result);
+            firstNumber = result;
+            currentInput = null;
 
-        if (event.type === "click") {
-            operator = event.target.id; 
-            blink(event.target)
-        } else if (event.type === "keydown") {
-            switch(event.key) {
-                case "+":
-                    operator = "add";
-                    break;
-                case "-":
-                    operator = "subtract";
-                    break;
-                case "*":
-                    operator = "multiply";
-                    break;
-                default:
-                    operator = "divide"
-            }
-        }
+            if (event.type === "click") {
+                operator = event.target.id; 
+                blink(event.target)
+            } else if (event.type === "keydown") {
+                switch(event.key) {
+                    case "+":
+                        operator = "add";
+                        break;
+                    case "-":
+                        operator = "subtract";
+                        break;
+                    case "*":
+                        operator = "multiply";
+                        break;
+                    default:
+                        operator = "divide";
+                }
+            }}
     }
+    // Record that the last input was an operator.
+    lastClick = "operator";
+
 }
 
 function equalClick(event) {
     lastClick = "equal";
-    if (event.type === "click") {
-        blink(event.target)}
 
-    if (firstNumber != null && currentInput == null) {
-        displayNumber(firstNumber)
-    }
+    if (event.type === "click") { blink(event.target); }
 
+    // Prevents issues when an operator (e.g., "-") is pressed before a valid second operand is entered.
+    // In such cases, the display simply shows the first number, keeping the operation unchanged.
+    if (firstNumber != null && currentInput == null) { displayNumber(firstNumber); }
     else if (firstNumber != null && currentInput != null) {
-        secondNumber = currentInput
-        result = operate (firstNumber, secondNumber, operator)
-        displayNumber(result)
+        secondNumber = currentInput;
+        result = operate (firstNumber, secondNumber, operator);
+        displayNumber(result);
     }
 }
 
 function pointClick(event) {
     lastClick = "point";
 
-    if (event.type === "click") {
-        blink(event.target)}
+    if (event.type === "click") { blink(event.target); }
 
+ // Allow adding a decimal point only if one hasn't been added yet.    
     if (decimal == false) {
-        
-        if(currentInput == null) {
-            displayNumber("0.");
-            decimal = true;
-        }
-
-        else {
-            displayNumber(".", false);
-            decimal = true;
-        }
-
+        // Format the number correctly based on whether it already has an integer part.
+        if(currentInput == null) { displayNumber("0."); } 
+        else { displayNumber(".", false); }
+        // Mark that a decimal point has been added.
+        decimal = true;
     }
 }
 
 function backspaceClick(event) {
-    if (event.type === "click") {
-        blink(event.target)}
+    if (event.type === "click") { blink(event.target) }
 
-    if(lastClick == "equal" || lastClick == "operator") {
-        clearAll ()
-    }
+    // If the last action was "equal" or an operator press, reset the calculator.
+    // This ensures that backspacing a result or an already completed operation clears the input.    
+    if(lastClick == "equal" || lastClick == "operator") { clearAll () }
     
     else {
+        // If there is a current input, attempt to remove the last digit.
         if (currentInput != null) {
-            if (decimal == false) {
-                currentInput = (currentInput - (currentInput % 10))/10
-            }
+
+            if (decimal == false) { currentInput = (currentInput - (currentInput % 10))/10 }
             else {
-                if (digit > 1) {                
+                // For numbers with a decimal part:
+                if (digit > 1) {    
+                    // Remove the last digit after the decimal by:
+                    // 1. Scaling the number up by 10^(digit-1)
+                    // 2. Removing the least significant digit via modulus arithmetic
+                    // 3. Scaling the number back down            
                     currentInput = ((currentInput * 10 ** (digit - 1)) - ((currentInput * 10 ** (digit - 1)) % 10)) / 10 ** (digit - 1)
                     digit --;
+
+                    // If digit equals 1, then all fractional digits have been removed, and the number is now an integer.
+                    // Therefore, disable the decimal flag.                    
                     if (digit == 1)
-                    {
-                        decimal = false;
-                    }
+                        {
+                            decimal = false;
+                        }
                 }
+                // This handles the case where the user added the decimal point but didn't enter any digits afterward.
+                // In this case, disable the decimal flag since no fractional part is present.
                 else {
                     decimal = false;
                 }
             }
-        
+            
+            // If the resulting current input becomes 0, reset the input and clear the display.
             if (currentInput == 0) {
                 currentInput = null
                 displayNumber("")
-            }
-            else {
+            } else {
             displayNumber(currentInput)}
         }
-
+        
         else {
+            // If there is no current input, reset the decimal flag and clear the display.
             decimal = false
             displayNumber("")
         }
@@ -281,11 +309,17 @@ function backspaceClick(event) {
 }
 
 function positiveNegativeClick (event) {
-    if (event.type === "click") {
-        blink(event.target)}
+    if (event.type === "click") { blink(event.target) }
     currentInput *= -1;
     displayNumber(currentInput)
 }
+
+
+
+
+//------------------- Adding Event Listeners --------------------------------------------------------------------
+
+//------- Event Listeners for Buttons ---------------------
 
 numberButtons.forEach((button) => {button.addEventListener("click", digitClick);});
 
@@ -300,9 +334,11 @@ pointButton.addEventListener("click", pointClick)
 backspaceButton.addEventListener("click", backspaceClick)
 
 positiveNegativeButton.addEventListener("click", positiveNegativeClick)
-    
+
+//------- Event Listeners for Keyboard Inputs ---------------------    
+
 window.addEventListener("keydown", (event) => {
-    
+    // Retrieve the corresponding button ID from the key-to-button mapping using the pressed key.
     const buttonId = keyToButtonId[event.key];
     if (buttonId) {
         const button = document.getElementById(buttonId);
