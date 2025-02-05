@@ -64,6 +64,10 @@ button {
     background-color: white;
 }
 
+#equal.blink,
+#point.blink {
+    background-color: white;
+}
 
 #zero{
     flex: 2 1 104px;

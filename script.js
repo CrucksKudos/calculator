@@ -7,6 +7,28 @@ const pointButton = document.querySelector("#point")
 const backspaceButton = document.querySelector("#backspace")
 const positiveNegativeButton = document.querySelector("#posneg")
 
+const keyToButtonId = {
+    "0": "zero",
+    "1": "one",
+    "2": "two",
+    "3": "three",
+    "4": "four",
+    "5": "five",
+    "6": "six",
+    "7": "seven",
+    "8": "eight",
+    "9": "nine",
+    ".": "point",
+    "+": "add",
+    "-": "subtract",
+    "*": "multiply",
+    "/": "divide",
+    "Enter": "equal",
+    "=": "equal",
+    "Backspace": "backspace",
+    "Delete": "clear"
+};
+
 let number = null;
 let firstNumber = null
 let secondNumber = null
@@ -103,7 +125,8 @@ function resetValues() {
 }
 
 function clearAll(event) {
-    blink(event.target);
+    if (event.type === "click") {
+        blink(event.target)}
     display.textContent = "";
     resetValues()
 }
@@ -291,6 +314,15 @@ backspaceButton.addEventListener("click", backspaceClick)
 positiveNegativeButton.addEventListener("click", positiveNegativeClick)
     
 window.addEventListener("keydown", (event) => {
+    
+    const buttonId = keyToButtonId[event.key];
+    if (buttonId) {
+        const button = document.getElementById(buttonId);
+        if (button) {
+            blink(button); 
+        }
+    }
+    
     if (event.key >= "0" && event.key <= "9") 
     {
         buttonClick(event)
