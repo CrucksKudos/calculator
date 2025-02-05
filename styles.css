@@ -22,6 +22,19 @@ h1 {
     background-color: black;
 }
 
+.display {
+    height: 120px;
+    flex: 1 1 250px;
+    background-color: lightgrey;
+    color: black;
+    font-size: 60px;
+    text-align: end;
+    font-weight: 800;
+    border-bottom: 5px solid black;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
 .row {
     display: flex;
     justify-content: space-between;
@@ -51,37 +64,22 @@ button {
     background-color: orange;
 }
 
-#equal,
-#point {
-    flex: 1 1 50px;
-}
-
 .additional {
     background-color: rgba(11, 165, 11, 0.808);
 }
 
-.blink {
-    background-color: white;
-}
-
-#equal.blink,
-#point.blink {
-    background-color: white;
+#equal,
+#point {
+    flex: 1 1 50px;
 }
 
 #zero{
     flex: 2 1 104px;
 }
 
-.display {
-    height: 120px;
-    flex: 1 1 250px;
-    background-color: lightgrey;
-    color: black;
-    font-size: 60px;
-    text-align: end;
-    font-weight: 800;
-    border-bottom: 5px solid black;
-    padding: 20px;
-    box-sizing: border-box;
+.blink,
+#equal.blink, 
+#point.blink {
+    background-color: white;
 }
+

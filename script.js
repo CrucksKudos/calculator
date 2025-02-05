@@ -1,3 +1,5 @@
+//-------------------Defining variables and selecting HTML documents --------------------------------------------------------------------
+
 const display = document.querySelector(".display");
 const numberButtons = Array.from(document.querySelectorAll(".number"));
 const operatorButtons = Array.from(document.querySelectorAll(".operator"));
@@ -7,6 +9,8 @@ const pointButton = document.querySelector("#point")
 const backspaceButton = document.querySelector("#backspace")
 const positiveNegativeButton = document.querySelector("#posneg")
 
+// Map keyboard keys to the corresponding calculator button IDs,
+// enabling the associated button to blink when its key is pressed.
 const keyToButtonId = {
     "0": "zero",
     "1": "one",
@@ -29,7 +33,7 @@ const keyToButtonId = {
     "Delete": "clear"
 };
 
-let number = null;
+let currentInput = null;
 let firstNumber = null
 let secondNumber = null
 let result = null;
@@ -38,92 +42,73 @@ let digit = 1;
 let lastClick;
 let operator
 
+//------------------- Defining functions --------------------------------------------------------------------
+
+//Function used to blink the button when it is clicked
 function blink (item) {
     item.classList.add("blink");
-    setTimeout(() => {
-        item.classList.remove("blink"); 
-    }, 100);
+    setTimeout(() => {item.classList.remove("blink");}, 100);
 }
 
-function add(a, b) {
-    return a + b;
-}
+//-------- Math Functions -------------
+function add(a, b) { return a + b; }
 
-function subtract(a, b) {
-    return a - b;
-}
+function subtract(a, b) { return a - b; }
 
-function multiply(a, b) {
-    return a * b;
-}
+function multiply(a, b) { return a * b; }
 
-function divide(a, b) {
-    return a / b;
-}
+function divide(a, b) { return a / b; }
 
 function operate(a, b, operator) {
-    let result = 0;
 
-    if(operator == "divide" && b == 0) {
-        return "LOL"
-    }
+    if(operator == "divide" && b == 0) { return "LOL" } //That is a project's requirement
 
     switch(operator) {
         
-        case "add":
-            result = add(a, b);
-            break;
+        case "add": return add(a, b);
 
-        case "subtract":
-            result = subtract(a, b);
-            break;
-        
-        case "multiply":
-            result = multiply(a, b);
-            break;
+        case "subtract": return subtract(a, b);
 
-        default:
-            result = divide(a, b);
+        case "multiply": return multiply(a, b);
+
+        default: return divide(a, b);
     }
-
-    return result;
 }
 
+//------ Calculator Functions -------------------------
+
+// This function updates the display to show the user's input while preserving its exact format.
+// It ensures that non-"pure" numeric inputs are displayed as entered. For example, if the user types
+// a 0 immediately after a decimal point, the display will show X.0. Without this logic, printing the
+// number directly could result in omitting the trailing zeros (e.g., X.000 would simply appear as X).
 function displayNumber(a, clearDisplay = true) {
 
     let newText = display.innerText;
 
-    if (newText == "0" && a != ".") {
-        clearDisplay = true
-    }
+    if (newText == "0" && a != ".") { clearDisplay = true; }
     
-    if (clearDisplay == true) {
-        newText = a.toString();
-    }
-    
-    else 
-    {
-        newText += a.toString();
-    }
+    if (clearDisplay == true) { newText = a.toString(); }
+    else { newText += a.toString(); } 
 
+    // Limit the displayed number to a maximum of 10 characters so that it fits within the display.
     const maxDigits = 10;
-    if (newText.length > maxDigits) {
-        newText = newText.slice(0, maxDigits);
-    }
+    if (newText.length > maxDigits) { newText = newText.slice(0, maxDigits);}
 
     display.textContent = newText;
 }
 
 function resetValues() {
-    number = null;
+    currentInput = null;
     firstNumber = null;
     secondNumber = null;
     result = null;
-    digit = 1;
     decimal = false;
+    digit = 1;
+    lastClick = ""
     operator = ""
 }
 
+//----------- Button Functions ----------------------
 function clearAll(event) {
     if (event.type === "click") {
         blink(event.target)}
@@ -131,10 +116,10 @@ function clearAll(event) {
     resetValues()
 }
 
-function buttonClick(event) {
-    
+function digitClick(event) {
     let n;
-
+    lastClick = "digit";
+    
     if (event.type === "click") {
         n = event.target.innerText; 
         blink(event.target);
@@ -142,27 +127,28 @@ function buttonClick(event) {
         n = event.key;
     }
 
-    if (number == null && decimal == false) {
-        display.textContent = "";
-    }
+    // Clear the display when the first digit is input after an operator    
+    if (currentInput == null && decimal == false) { display.textContent = ""; }
 
-    if (!decimal) {
-        number = number * 10 + Number(n);
-    } else {
-        number = Math.round((number + Number(n) / (10 ** digit)) * 1e10) / 1e10;
+    if (!decimal) { currentInput = currentInput * 10 + Number(n); } 
+    else {
+        // Handle decimal input: calculate the fractional part and round to avoid precision issues.
+        currentInput = Math.round((currentInput + Number(n) / (10 ** digit)) * 1e10) / 1e10;
         digit++;
     }
-    lastClick = "digit";
+
     displayNumber(n, false);
 }
 
 function operatorClick(event) {
-
-    decimal = false;
-    digit = 1;
     lastClick = "operator";
 
+    // Reset the decimal flag and digit counter for a new number entry.
+    decimal = false;
+    digit = 1;
     
+    // If no first number has been stored yet, process the operator input
+    // and store the current input as the first operand.
     if (firstNumber == null) {
         if (event.type === "click") {
             operator = event.target.id; 
@@ -182,15 +168,18 @@ function operatorClick(event) {
                     operator = "divide"
             }
         }
-        firstNumber = number;
-        number = null;
+        firstNumber = currentInput;
+        currentInput = null;
     }
+    // If a first number already exists, then the current input becomes the second operand.
+    // This logic allows the user to perform continuous calculations.
     else if (firstNumber != null) {
-        secondNumber = number;
+        secondNumber = currentInput;
         result = operate (firstNumber, secondNumber, operator);
         displayNumber(result);
         firstNumber = result;
-        number = null;
+        currentInput = null;
+
         if (event.type === "click") {
             operator = event.target.id; 
             blink(event.target)
@@ -210,7 +199,6 @@ function operatorClick(event) {
             }
         }
     }
-    console.log(operator)
 }
 
 function equalClick(event) {
@@ -218,12 +206,12 @@ function equalClick(event) {
     if (event.type === "click") {
         blink(event.target)}
 
-    if (firstNumber != null && number == null) {
+    if (firstNumber != null && currentInput == null) {
         displayNumber(firstNumber)
     }
 
-    else if (firstNumber != null && number != null) {
-        secondNumber = number
+    else if (firstNumber != null && currentInput != null) {
+        secondNumber = currentInput
         result = operate (firstNumber, secondNumber, operator)
         displayNumber(result)
     }
@@ -237,7 +225,7 @@ function pointClick(event) {
 
     if (decimal == false) {
         
-        if(number == null) {
+        if(currentInput == null) {
             displayNumber("0.");
             decimal = true;
         }
@@ -259,13 +247,13 @@ function backspaceClick(event) {
     }
     
     else {
-        if (number != null) {
+        if (currentInput != null) {
             if (decimal == false) {
-                number = (number - (number % 10))/10
+                currentInput = (currentInput - (currentInput % 10))/10
             }
             else {
                 if (digit > 1) {                
-                    number = ((number * 10 ** (digit - 1)) - ((number * 10 ** (digit - 1)) % 10)) / 10 ** (digit - 1)
+                    currentInput = ((currentInput * 10 ** (digit - 1)) - ((currentInput * 10 ** (digit - 1)) % 10)) / 10 ** (digit - 1)
                     digit --;
                     if (digit == 1)
                     {
@@ -277,12 +265,12 @@ function backspaceClick(event) {
                 }
             }
         
-            if (number == 0) {
-                number = null
+            if (currentInput == 0) {
+                currentInput = null
                 displayNumber("")
             }
             else {
-            displayNumber(number)}
+            displayNumber(currentInput)}
         }
 
         else {
@@ -295,11 +283,11 @@ function backspaceClick(event) {
 function positiveNegativeClick (event) {
     if (event.type === "click") {
         blink(event.target)}
-    number *= -1;
-    displayNumber(number)
+    currentInput *= -1;
+    displayNumber(currentInput)
 }
 
-numberButtons.forEach((button) => {button.addEventListener("click", buttonClick);});
+numberButtons.forEach((button) => {button.addEventListener("click", digitClick);});
 
 operatorButtons.forEach((button) => {button.addEventListener("click", operatorClick);});
 
@@ -325,7 +313,7 @@ window.addEventListener("keydown", (event) => {
     
     if (event.key >= "0" && event.key <= "9") 
     {
-        buttonClick(event)
+        digitClick(event)
     }
     else if (event.key == "+" || event.key == "-" || event.key == "*" || event.key == "/") 
     {
@@ -350,20 +338,3 @@ window.addEventListener("keydown", (event) => {
 })
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function check() {
-    console.log (`First: ${firstNumber}, Second: ${secondNumber}, Operator: ${operator},Result: ${result}`);
-}
